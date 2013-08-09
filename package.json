@@ -1,0 +1,14 @@
+{
+  "name": "seasketch-reporting-api",
+  "version": "0.0.1",
+  "description": "Shared client code for SeaSketch reporting modules",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcclintock-lab/seasketch-reporting-api"
+  },
+  "dependencies": {
+    "bootstrap": "git://github.com/twbs/bootstrap.git"
+  },
+  "author": "Chad Burt",
+  "license": "BSD"
+}
