@@ -7,7 +7,7 @@
     "url": "https://github.com/mcclintock-lab/seasketch-reporting-api"
   },
   "dependencies": {
-    "bootstrap": "git://github.com/twbs/bootstrap.git#v3.0.0"
+    "bootstrap": "git://github.com/twbs/bootstrap.git#v2.3.2"
   },
   "author": "Chad Burt",
   "license": "BSD"
