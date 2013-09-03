@@ -7,8 +7,16 @@
     "url": "https://github.com/mcclintock-lab/seasketch-reporting-api"
   },
   "dependencies": {
-    "bootstrap": "git://github.com/twbs/bootstrap.git#v2.3.2"
+    "bootstrap": "git://github.com/twbs/bootstrap.git"
   },
-  "author": "Chad Burt",
-  "license": "BSD"
+  "author": {
+    "name": "Chad Burt"
+  },
+  "license": "BSD",
+  "readme": "## Installation:\n\n```\nnpm install git://git@github.com:mcclintock-lab/seasketch-reporting-api\n```\n\n## Contributions\n\nPlease tag changes using semantic versioning so that report implementations\ncan require specific versions of the api.\n\n## Usage\n\nSee [the seasketch-report-template project](https://github.com/mcclintock-lab/seasketch-report-template) for instructions on how to use this library.\n",
+  "_id": "seasketch-reporting-api@0.0.1",
+  "dist": {
+    "shasum": "967ece335b1c845e6c9ddab99779a61139ed916d"
+  },
+  "_from": "seasketch-reporting-api@git://github.com/mcclintock-lab/seasketch-reporting-api.git"
 }
