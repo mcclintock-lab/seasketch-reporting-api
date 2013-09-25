@@ -100,8 +100,27 @@ class ReportTab extends Backbone.View
     param = _.find dep.get('data').results, (param) -> 
       param.paramName is paramName
     unless param
+      console.log dep.get('data').results
       throw new Error "Could not find param #{paramName} in #{dependency}"
     new RecordSet(param)
+
+  recordSets: (dependency, paramName) ->
+    unless dependency in @dependencies
+      throw new Error "Unknown dependency #{dependency}"
+    deps = _.filter @allResults, (result) -> result.get('name') is dependency
+    unless deps.length
+      console.log @allResults
+      throw new Error "Could not find results for #{dependency}."
+    params = []
+    for dep in deps
+      param = _.find dep.get('data').results, (param) -> 
+        param.paramName is paramName
+      unless param
+        console.log dep.get('data').results
+        throw new Error "Could not find param #{paramName} in #{dependency}"
+      params.push new RecordSet(param)
+    return params
+
 
   enableTablePaging: () ->
     @$('[data-paging]').each () ->
