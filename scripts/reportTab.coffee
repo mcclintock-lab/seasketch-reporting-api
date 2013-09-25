@@ -90,24 +90,33 @@ class ReportTab extends Backbone.View
     _.filter results, (result) ->
       result.paramName not in ['ResultCode', 'ResultMsg']
 
-  recordSet: (dependency, paramName) ->
+  recordSet: (dependency, paramName, sketchClassId) ->
     unless dependency in @dependencies
       throw new Error "Unknown dependency #{dependency}"
-    dep = _.find @allResults, (result) -> result.get('name') is dependency
+    if sketchClassId
+      dep = _.find @allResults, (result) -> 
+        result.get('name') is dependency and 
+          result.get('sketchClass') is sketchClassId
+    else
+      dep = _.find @allResults, (result) -> result.get('name') is dependency
     unless dep
       console.log @allResults
       throw new Error "Could not find results for #{dependency}."
+    console.log 'dep', dep
     param = _.find dep.get('data').results, (param) -> 
       param.paramName is paramName
     unless param
       console.log dep.get('data').results
       throw new Error "Could not find param #{paramName} in #{dependency}"
-    new RecordSet(param)
+    rs = new RecordSet(param)
+    rs.sketchClass = dep.get('sketchClass')
+    rs
 
   recordSets: (dependency, paramName) ->
     unless dependency in @dependencies
       throw new Error "Unknown dependency #{dependency}"
     deps = _.filter @allResults, (result) -> result.get('name') is dependency
+    console.log 'deps', deps
     unless deps.length
       console.log @allResults
       throw new Error "Could not find results for #{dependency}."
@@ -118,7 +127,9 @@ class ReportTab extends Backbone.View
       unless param
         console.log dep.get('data').results
         throw new Error "Could not find param #{paramName} in #{dependency}"
-      params.push new RecordSet(param)
+      rs = new RecordSet(param)
+      rs.sketchClass = dep.get('sketchClass')
+      params.push rs
     return params
 
 
