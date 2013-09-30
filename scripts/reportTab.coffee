@@ -102,7 +102,6 @@ class ReportTab extends Backbone.View
     unless dep
       console.log @allResults
       throw new Error "Could not find results for #{dependency}."
-    console.log 'dep', dep
     param = _.find dep.get('data').results, (param) -> 
       param.paramName is paramName
     unless param
@@ -116,7 +115,6 @@ class ReportTab extends Backbone.View
     unless dependency in @dependencies
       throw new Error "Unknown dependency #{dependency}"
     deps = _.filter @allResults, (result) -> result.get('name') is dependency
-    console.log 'deps', deps
     unless deps.length
       console.log @allResults
       throw new Error "Could not find results for #{dependency}."
@@ -191,5 +189,9 @@ class ReportTab extends Backbone.View
 
   enableLayerTogglers: () ->
     enableLayerTogglers(@$el)
+
+  getChildren: (sketchClassId) ->
+    _.filter @children, (child) -> child.getSketchClass().id is sketchClassId
+
 
 module.exports = ReportTab
