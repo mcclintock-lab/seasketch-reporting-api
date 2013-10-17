@@ -1,5 +1,11 @@
 enableLayerTogglers = require './enableLayerTogglers.coffee'
 round = require('./utils.coffee').round
+ReportResults = require './reportResults.coffee'
+t = require('api/templates')
+templates =
+  reportLoading: t['node_modules/seasketch-reporting-api/reportLoading']
+JobItem = require './jobItem.coffee'
+CollectionView = require('views/collectionView')
 
 class RecordSet
 
@@ -53,6 +59,12 @@ class ReportTab extends Backbone.View
     #        call @options.parent.destroy() to close the whole report window
     @app = window.app
     _.extend @, @options
+    @reportResults = new ReportResults(@model, @dependencies)
+    @listenTo @reportResults, 'error', @reportError
+    @listenToOnce @reportResults, 'jobs', @renderJobDetails
+    @listenTo @reportResults, 'jobs', @reportJobs
+    @listenTo @reportResults, 'finished', _.bind @render, @
+    @listenToOnce @reportResults, 'request', @reportRequested
 
   render: () ->
     throw 'render method must be overidden'
@@ -60,15 +72,66 @@ class ReportTab extends Backbone.View
   show: () ->
     @$el.show()
     @visible = true
+    unless @reportResults.models.length
+      @reportResults.poll()
 
   hide: () ->
     @$el.hide()
     @visible = false
 
   remove: () =>
+    window.clearInterval @etaInterval
+    @stopListening()
     super()
   
-  onLoading: () -> # extension point for subclasses
+  reportRequested: () =>
+    @$el.html templates.reportLoading.render({})
+
+  reportError: (e) =>
+    if e is 'JOB_ERROR'
+      console.log 'Error with specific job'
+    else
+      console.log 'Error requesting report results from the server'
+
+  reportJobs: () =>
+    unless @maxEta
+      @$('.progress .bar').width('100%')
+    @$('h4').text "Analyzing Designs"
+
+  startEtaCountdown: () =>
+    if @maxEta
+      total = (new Date(@maxEta).getTime() - new Date(@etaStart).getTime()) / 1000
+      left = (new Date(@maxEta).getTime() - new Date().getTime()) / 1000
+      _.delay () =>
+        @reportResults.poll()
+      , (left + 1) * 1000
+      _.delay () =>
+        @$('.progress .bar').css 'transition-timing-function', 'linear'
+        @$('.progress .bar').css 'transition-duration', "#{left + 1}s"
+        @$('.progress .bar').width('100%')
+      , 500
+
+  renderJobDetails: () =>
+    maxEta = null
+    for job in @reportResults.models
+      if job.get('eta')
+        if !maxEta or job.get('eta') > maxEta
+          maxEta = job.get('eta')
+    if maxEta
+      @maxEta = maxEta
+      @$('.progress .bar').width('5%')
+      @etaStart = new Date()
+      @startEtaCountdown()
+
+    @$('[rel=details]').css('display', 'block')
+    @$('[rel=details]').click (e) =>
+      e.preventDefault()
+      @$('[rel=details]').hide()
+      @$('.details').show()
+    for job in @reportResults.models
+      item = new JobItem(job)
+      item.render()
+      @$('.details').append item.el
 
   getResult: (id) ->
     results = @getResults()
@@ -85,7 +148,8 @@ class ReportTab extends Backbone.View
       throw "Error finding #{param}:#{id} in gp results"
 
   getResults: () ->
-    unless results = @results?.get('data')?.results
+    results = @reportResults.map((result) -> result.get('result').results)
+    unless results?.length
       throw new Error('No gp results')
     _.filter results, (result) ->
       result.paramName not in ['ResultCode', 'ResultMsg']
@@ -98,11 +162,11 @@ class ReportTab extends Backbone.View
         result.get('name') is dependency and 
           result.get('sketchClass') is sketchClassId
     else
-      dep = _.find @allResults, (result) -> result.get('name') is dependency
+      dep = @reportResults.find (r) -> r.get('serviceName') is dependency
     unless dep
-      console.log @allResults
+      console.log @reportResults.models
       throw new Error "Could not find results for #{dependency}."
-    param = _.find dep.get('data').results, (param) -> 
+    param = _.find dep.get('result').results, (param) -> 
       param.paramName is paramName
     unless param
       console.log dep.get('data').results

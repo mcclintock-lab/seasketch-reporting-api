@@ -2,11 +2,63 @@
 @import '../node_modules/bootstrap/less/mixins.less';
 
 .reportView {
+
+  .reportLoading {
+    margin-top:24px;
+    h4 {
+      margin-top:24px;
+    }  
+    .progress {
+      width:400px;
+      margin:0px auto;
+      margin-top:20px;
+      border:1px solid #e2e1e2;
+      background:white;
+      .bar {
+        -webkit-transition-duration: 0s;
+        -moz-transition-duration: 0s;
+        -o-transition-duration: 0s;
+        transition-duration: 0s;
+        @c:#98b9cf;
+        #gradient > .vertical(@c, darken(@c, 15%));
+        #gradient > .striped(@c);
+      }
+    }
+
+    [rel=details] {
+      width:100%;
+      text-align:center;
+      display:block;
+      margin-top:10px;
+      display:none;
+    }
+
+    .details {
+      display:none;
+      margin-top:10px;
+      .reportResult {
+        padding:5px 10px;
+        border:1px solid #efefef;
+        background:#fcfcfc;
+        h6 {
+          font-size:14px;
+        }
+        h6 a {
+          margin-right:10px;
+        }
+        h6 span {
+          font-style:italic;
+        }
+      }
+    }
+  }
+
   div.reportSection {
     background:white;
     padding:10px;
     .border-radius(5px);
     border:1px solid rgba(0,0,0,0.1);
+
 
     h4 {
       color:#7a90a1;
