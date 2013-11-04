@@ -1,7 +1,7 @@
 enableLayerTogglers = require './enableLayerTogglers.coffee'
 round = require('./utils.coffee').round
 ReportResults = require './reportResults.coffee'
-t = require('api/templates')
+t = require('../templates/templates.js')
 templates =
   reportLoading: t['node_modules/seasketch-reporting-api/reportLoading']
 JobItem = require './jobItem.coffee'
