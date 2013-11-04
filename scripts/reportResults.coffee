@@ -1,6 +1,6 @@
 class ReportResults extends Backbone.Collection
 
-  defaultPollingInterval: 5000
+  defaultPollingInterval: 3000
 
   constructor: (@sketch, @deps) ->
     @url = url = "/reports/#{@sketch.id}/#{@deps.join(',')}"
@@ -11,19 +11,26 @@ class ReportResults extends Backbone.Collection
       success: () =>
         @trigger 'jobs'
         for result in @models
-          if result.get('status') != 'complete'
+          if result.get('status') not in ['complete', 'error']
             unless @interval
               @interval = setInterval @poll, @defaultPollingInterval
             return
         # all complete then
         window.clearInterval(@interval) if @interval
-        if _.find(@models, (r) -> r.error?)
-          @trigger 'error', 'JOB_ERROR'
+        if problem = _.find(@models, (r) -> r.get('error')?)
+          @trigger 'error', "Problem with #{problem.get('serviceName')} job"
         else
           @trigger 'finished'
-      error: () =>
-        window.clearInterval(@interval) if @interval
-        @trigger 'error', 'JOB_SUBMISSION'
+      error: (e, res, a, b) =>
+        unless res.status is 0
+          if res.responseText?.length
+            try
+              json = JSON.parse(res.responseText)
+            catch
+              # do nothing
+          window.clearInterval(@interval) if @interval
+          @trigger 'error', json?.error?.message or 
+            'Problem contacting the SeaSketch server'
     }
 
 module.exports = ReportResults

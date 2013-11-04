@@ -12,14 +12,27 @@ class JobItem extends Backbone.View
     ".startedAt":
       observe: ["startedAt", "status"]
       visible: () ->
-        @model.get('status') != 'complete'
+        @model.get('status') not in ['complete', 'error']
       updateView: true
       onGet: () ->
         if @model.get('startedAt')
           return "Started " + moment(@model.get('startedAt')).fromNow() + ". "
         else
           ""
-    ".status":      "status"
+    ".status":      
+      observe: "status"
+      onGet: (s) ->
+        switch s
+          when 'pending'
+            "waiting in line"
+          when 'running'
+            "running analytical service"
+          when 'complete'
+            "completed"
+          when 'error'
+            "an error occurred"
+          else
+            s
     ".queueLength": 
       observe: "queueLength"
       onGet: (v) ->
@@ -29,6 +42,16 @@ class JobItem extends Backbone.View
         return s + ". "
       visible: (v) ->
         v? and parseInt(v) > 0
+    ".errors":
+      observe: 'error'
+      updateView: true
+      visible: (v) ->
+        v?.length > 2
+      onGet: (v) ->
+        if v?
+          JSON.stringify(v, null, '  ')
+        else
+          null
 
   constructor: (@model) ->
     super()
@@ -39,6 +62,7 @@ class JobItem extends Backbone.View
       <div>
         <span class="startedAt"></span>
         <span class="queueLength"></span>
+        <pre class="errors"></pre>
       </div>
     """
     @stickit()

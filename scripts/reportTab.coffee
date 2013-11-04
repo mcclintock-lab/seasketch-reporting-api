@@ -9,7 +9,7 @@ CollectionView = require('views/collectionView')
 
 class RecordSet
 
-  constructor: (@data) ->
+  constructor: (@data, @tab) ->
 
   toArray: () ->
     _.map @data.value[0].features, (feature) ->
@@ -20,6 +20,8 @@ class RecordSet
       row[attr]
     attrs = _.filter attrs, (attr) -> attr != undefined
     if attrs.length is 0
+      console.log @data
+      @tab.reportError "Could not get attribute #{attr} from results"
       throw "Could not get attribute #{attr}"
     else if attrs.length is 1
       return attrs[0]
@@ -60,9 +62,9 @@ class ReportTab extends Backbone.View
     @app = window.app
     _.extend @, @options
     @reportResults = new ReportResults(@model, @dependencies)
-    @listenTo @reportResults, 'error', @reportError
+    @listenToOnce @reportResults, 'error', @reportError
     @listenToOnce @reportResults, 'jobs', @renderJobDetails
-    @listenTo @reportResults, 'jobs', @reportJobs
+    @listenToOnce @reportResults, 'jobs', @reportJobs
     @listenTo @reportResults, 'finished', _.bind @render, @
     @listenToOnce @reportResults, 'request', @reportRequested
 
@@ -72,8 +74,10 @@ class ReportTab extends Backbone.View
   show: () ->
     @$el.show()
     @visible = true
-    unless @reportResults.models.length
+    if @dependencies?.length and !@reportResults.models.length
       @reportResults.poll()
+    else if !@dependencies?.length
+      @render()
 
   hide: () ->
     @$el.hide()
@@ -87,11 +91,19 @@ class ReportTab extends Backbone.View
   reportRequested: () =>
     @$el.html templates.reportLoading.render({})
 
-  reportError: (e) =>
-    if e is 'JOB_ERROR'
-      console.log 'Error with specific job'
-    else
-      console.log 'Error requesting report results from the server'
+  reportError: (msg, cancelledRequest) =>
+    unless cancelledRequest
+      if msg is 'JOB_ERROR'
+        @showError 'Error with specific job'
+      else
+        @showError msg
+
+  showError: (msg) =>
+    @$('.progress').remove()
+    @$('p.error').remove()
+    @$('h4').text("An Error Occurred").after """
+      <p class="error" style="text-align:center;">#{msg}</p>
+    """
 
   reportJobs: () =>
     unless @maxEta
@@ -171,7 +183,7 @@ class ReportTab extends Backbone.View
     unless param
       console.log dep.get('data').results
       throw new Error "Could not find param #{paramName} in #{dependency}"
-    rs = new RecordSet(param)
+    rs = new RecordSet(param, @)
     rs.sketchClass = dep.get('sketchClass')
     rs
 
@@ -189,7 +201,7 @@ class ReportTab extends Backbone.View
       unless param
         console.log dep.get('data').results
         throw new Error "Could not find param #{paramName} in #{dependency}"
-      rs = new RecordSet(param)
+      rs = new RecordSet(param, @)
       rs.sketchClass = dep.get('sketchClass')
       params.push rs
     return params
