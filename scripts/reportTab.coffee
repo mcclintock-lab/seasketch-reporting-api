@@ -9,10 +9,17 @@ CollectionView = require('views/collectionView')
 
 class RecordSet
 
-  constructor: (@data, @tab) ->
+  constructor: (@data, @tab, @sketchClassId) ->
 
   toArray: () ->
-    _.map @data.value[0].features, (feature) ->
+    if @sketchClassId
+      data = _.find @data.value, (v) => 
+        v.features?[0]?.attributes?['SC_ID'] is @sketchClassId        
+      unless data
+        throw "Could not find data for sketchClass #{@sketchClassId}"
+    else
+      data = @data.value[0]
+    _.map data.features, (feature) ->
       feature.attributes
 
   raw: (attr) ->
@@ -166,15 +173,10 @@ class ReportTab extends Backbone.View
     _.filter results, (result) ->
       result.paramName not in ['ResultCode', 'ResultMsg']
 
-  recordSet: (dependency, paramName, sketchClassId) ->
+  recordSet: (dependency, paramName, sketchClassId=false) ->
     unless dependency in @dependencies
       throw new Error "Unknown dependency #{dependency}"
-    if sketchClassId
-      dep = _.find @allResults, (result) -> 
-        result.get('name') is dependency and 
-          result.get('sketchClass') is sketchClassId
-    else
-      dep = @reportResults.find (r) -> r.get('serviceName') is dependency
+    dep = @reportResults.find (r) -> r.get('serviceName') is dependency
     unless dep
       console.log @reportResults.models
       throw new Error "Could not find results for #{dependency}."
@@ -183,29 +185,7 @@ class ReportTab extends Backbone.View
     unless param
       console.log dep.get('data').results
       throw new Error "Could not find param #{paramName} in #{dependency}"
-    rs = new RecordSet(param, @)
-    rs.sketchClass = dep.get('sketchClass')
-    rs
-
-  recordSets: (dependency, paramName) ->
-    unless dependency in @dependencies
-      throw new Error "Unknown dependency #{dependency}"
-    deps = _.filter @allResults, (result) -> result.get('name') is dependency
-    unless deps.length
-      console.log @allResults
-      throw new Error "Could not find results for #{dependency}."
-    params = []
-    for dep in deps
-      param = _.find dep.get('data').results, (param) -> 
-        param.paramName is paramName
-      unless param
-        console.log dep.get('data').results
-        throw new Error "Could not find param #{paramName} in #{dependency}"
-      rs = new RecordSet(param, @)
-      rs.sketchClass = dep.get('sketchClass')
-      params.push rs
-    return params
-
+    new RecordSet(param, @, sketchClassId)
 
   enableTablePaging: () ->
     @$('[data-paging]').each () ->
