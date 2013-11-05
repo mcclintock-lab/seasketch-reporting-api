@@ -18,7 +18,10 @@ class RecordSet
       unless data
         throw "Could not find data for sketchClass #{@sketchClassId}"
     else
-      data = @data.value[0]
+      if _.isArray @data.value
+        data = @data.value[0]
+      else
+        data = @data.value
     _.map data.features, (feature) ->
       feature.attributes
 
