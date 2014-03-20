@@ -88,7 +88,7 @@ class ReportTab extends Backbone.View
       @reportResults.poll()
     else if !@dependencies?.length
       @render()
-      @$('[data-attribute-type=UrlField], [data-attribute-type=UploadField] .value').each () ->
+      @$('[data-attribute-type=UrlField] .value, [data-attribute-type=UploadField] .value').each () ->
         text = $(@).text()
         html = []
         for url in text.split(',')
