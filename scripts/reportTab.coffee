@@ -13,8 +13,8 @@ class RecordSet
 
   toArray: () ->
     if @sketchClassId
-      data = _.find @data.value, (v) => 
-        v.features?[0]?.attributes?['SC_ID'] is @sketchClassId        
+      data = _.find @data.value, (v) =>
+        v.features?[0]?.attributes?['SC_ID'] is @sketchClassId
       unless data
         throw "Could not find data for sketchClass #{@sketchClassId}"
     else
@@ -67,7 +67,7 @@ class ReportTab extends Backbone.View
     # Will be initialized by SeaSketch with the following arguments:
     #   * model - The sketch being reported on
     #   * options
-    #     - .parent - the parent report view 
+    #     - .parent - the parent report view
     #        call @options.parent.destroy() to close the whole report window
     @app = window.app
     _.extend @, @options
@@ -88,6 +88,15 @@ class ReportTab extends Backbone.View
       @reportResults.poll()
     else if !@dependencies?.length
       @render()
+      @$('[data-attribute-type=UrlField], [data-attribute-type=UploadField] .value').each () ->
+        text = $(@).text()
+        html = []
+        for url in text.split(',')
+          if url.length
+            name = _.last(url.split('/'))
+            html.push """<a target="_blank" href="#{url}">#{name}</a>"""
+        $(@).html html.join(', ')
+
 
   hide: () ->
     @$el.hide()
@@ -97,7 +106,7 @@ class ReportTab extends Backbone.View
     window.clearInterval @etaInterval
     @stopListening()
     super()
-  
+
   reportRequested: () =>
     @$el.html templates.reportLoading.render({})
 
@@ -183,7 +192,7 @@ class ReportTab extends Backbone.View
     unless dep
       console.log @reportResults.models
       throw new Error "Could not find results for #{dependency}."
-    param = _.find dep.get('result').results, (param) -> 
+    param = _.find dep.get('result').results, (param) ->
       param.paramName is paramName
     unless param
       console.log dep.get('data').results
@@ -238,10 +247,10 @@ class ReportTab extends Backbone.View
             offset = pageSize * (n - 1)
             $table.find("tbody tr").slice(offset, n*pageSize).show()
         $($table.find('li a')[1]).click()
-      
+
       if noRowsMessage = $table.data('no-rows')
         if rows is 0
-          parent = $table.parent()    
+          parent = $table.parent()
           $table.remove()
           parent.removeClass 'tableContainer'
           parent.append "<p>#{noRowsMessage}</p>"
