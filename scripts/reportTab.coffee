@@ -131,27 +131,24 @@ class ReportTab extends Backbone.View
 
   startEtaCountdown: () =>
     if @maxEta
-      total = (new Date(@maxEta).getTime() - new Date(@etaStart).getTime()) / 1000
-      left = (new Date(@maxEta).getTime() - new Date().getTime()) / 1000
       _.delay () =>
         @reportResults.poll()
-      , (left + 1) * 1000
+      , (@maxEta + 1) * 1000
       _.delay () =>
         @$('.progress .bar').css 'transition-timing-function', 'linear'
-        @$('.progress .bar').css 'transition-duration', "#{left + 1}s"
+        @$('.progress .bar').css 'transition-duration', "#{@maxEta + 1}s"
         @$('.progress .bar').width('100%')
       , 500
 
   renderJobDetails: () =>
     maxEta = null
     for job in @reportResults.models
-      if job.get('eta')
-        if !maxEta or job.get('eta') > maxEta
-          maxEta = job.get('eta')
+      if job.get('etaSeconds')
+        if !maxEta or job.get('etaSeconds') > maxEta
+          maxEta = job.get('etaSeconds')
     if maxEta
       @maxEta = maxEta
       @$('.progress .bar').width('5%')
-      @etaStart = new Date()
       @startEtaCountdown()
 
     @$('[rel=details]').css('display', 'block')

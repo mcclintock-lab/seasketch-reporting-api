@@ -15,6 +15,8 @@ class ReportResults extends Backbone.Collection
             unless @interval
               @interval = setInterval @poll, @defaultPollingInterval
             return
+          payloadSize = Math.round((@models[0].get('payloadSizeBytes') or 0 / 1024) * 100) / 100
+          console.log "FeatureSet sent to GP weighed in at #{payloadSize}kb"
         # all complete then
         window.clearInterval(@interval) if @interval
         if problem = _.find(@models, (r) -> r.get('error')?)
@@ -29,7 +31,7 @@ class ReportResults extends Backbone.Collection
             catch
               # do nothing
           window.clearInterval(@interval) if @interval
-          @trigger 'error', json?.error?.message or 
+          @trigger 'error', json?.error?.message or
             'Problem contacting the SeaSketch server'
     }
 
