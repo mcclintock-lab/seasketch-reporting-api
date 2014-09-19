@@ -1,5 +1,7 @@
 <table class="attributes">
   {{#attributes}}
+    {{^doNotExport}}
     {{>attributes/attributeItem}}
+    {{/doNotExport}}
   {{/attributes}}
 </table>
