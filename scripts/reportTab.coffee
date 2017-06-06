@@ -1,4 +1,5 @@
 enableLayerTogglers = require './enableLayerTogglers.coffee'
+enableRasterLayers = require './enableRasterLayers.coffee'
 round = require('./utils.coffee').round
 ReportResults = require './reportResults.coffee'
 t = require('../templates/templates.js')
@@ -30,7 +31,6 @@ class RecordSet
       row[attr]
     attrs = _.filter attrs, (attr) -> attr != undefined
     if attrs.length is 0
-      console.log @data
       @tab.reportError "Could not get attribute #{attr} from results"
       throw "Could not get attribute #{attr}"
     else if attrs.length is 1
@@ -70,6 +70,7 @@ class ReportTab extends Backbone.View
     #     - .parent - the parent report view
     #        call @options.parent.destroy() to close the whole report window
     @app = window.app
+    @rasterLayers = []
     _.extend @, @options
     @reportResults = new ReportResults(@model, @dependencies)
     @listenToOnce @reportResults, 'error', @reportError
@@ -105,6 +106,8 @@ class ReportTab extends Backbone.View
   remove: () =>
     window.clearInterval @etaInterval
     @stopListening()
+    for layer in @rasterLayers
+      @app.projecthomepage.map.removeLayer(layer)
     super()
 
   reportRequested: () =>
@@ -254,6 +257,9 @@ class ReportTab extends Backbone.View
 
   enableLayerTogglers: () ->
     enableLayerTogglers(@$el)
+
+  enableRasterLayers: () =>
+    enableRasterLayers(@$el, @rasterLayers)
 
   getChildren: (sketchClassId) ->
     _.filter @children, (child) -> child.getSketchClass().id is sketchClassId
