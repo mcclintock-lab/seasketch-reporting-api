@@ -2,7 +2,10 @@ module.exports = (el, rasterLayersList) ->
   $el = $ el
   app = window.app
 
-
+  if @rasterLayers?.length > 0
+    for rasterLayer in @rasterLayers
+      window.app.projecthomepage.map.removeLayer(rasterLayer)
+    @rasterLayers = []
 
   togglers = $el.find('a[data-raster-url]')
   # Set initial state
