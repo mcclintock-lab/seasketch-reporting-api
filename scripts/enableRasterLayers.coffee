@@ -16,6 +16,7 @@ module.exports = (el, rasterLayersList) ->
     height = $toggler.data('height')
     extent = $toggler.data('extent').split(',')
     toggled = $toggler.data('toggled')
+    seasketch_layer_id = $toggler.data('seasketch-layer-id')
     if !url or !width or !height or !extent
       throw new Error("Raster links must include data-raster-url, data-width, data-height, and data-extent attributes")
     layer = new esri.layers.MapImageLayer({visible: toggled})
@@ -39,6 +40,7 @@ module.exports = (el, rasterLayersList) ->
     $toggler.replaceWith(toc)
     $toggler = toc.find('.tableOfContentsItem');
     layer.addImage(mapImage);
+    layer.seasketch_layer_id = seasketch_layer_id
     rasterLayersList.push layer
     window.app.projecthomepage.map.addLayer(layer)
     $toggler.data('layer', layer)
